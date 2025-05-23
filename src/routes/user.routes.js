@@ -1,40 +1,40 @@
 import { Router } from "express";
-import { 
+import {
+    registerUser,
     loginUser,
-    registerUser 
+    logoutUser,
+    refreshAccessToken,
+    resetPassword,
+    fetchUserProfile,
+    updateAccountDetails,
+    updateUserAvatar,
+    updateUsercoverImage,
+    getChannelProfile,
+    getWatchHistory,
+    
 } from "../controllers/user.controller.js";
-import {upload} from "../middlewares/multer.middleware.js"
+import {uploader, upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-
-
+import { loginLimiter, registerLimiter } from "../middlewares/rateLimiter.middleware.js";
+import {validationBodyRules, resetPasswordValidation, checkRules, updateAccountValidation} from "../middlewares/validation.middleware.js"
+const loginValidationBodyRules = [validationBodyRules[0], validationBodyRules[1], validationBodyRules[2]];
 const router = Router()
+//:: router.route("/register") = app.use("api/v1/users/register") (simply?)
 
-router.route("/register").post(
-    upload.fields([
-        {
-            name: "avatar",
-            maxCount: 1
-        }, 
-        {
-            name: "coverImage",
-            maxCount: 1
-        }
-    ]), registerUser
-    )
-
-router.route("/login").post(loginUser)
+router.route("/register").post(registerLimiter, uploader, validationBodyRules, checkRules, registerUser)
+router.route("/login").post(loginLimiter, loginValidationBodyRules, checkRules,loginUser)
 
 //secured routes
-// router.route("/logout").post(verifyJWT,  logoutUser)
-// router.route("/refresh-token").post(refreshAccessToken)
-// router.route("/change-password").post(verifyJWT, changeCurrentPassword)
-// router.route("/current-user").get(verifyJWT, getCurrentUser)
-// router.route("/update-account").patch(verifyJWT, updateAccountDetails)
+router.route("/logout").post(verifyJWT,  logoutUser)
+router.route("/refresh-token").post(refreshAccessToken)
+router.route("/change-password").post(verifyJWT, resetPasswordValidation, checkRules, resetPassword)
+router.route("/current-user").get(verifyJWT, fetchUserProfile)
+router.route("/update-account").patch(verifyJWT, updateAccountValidation, checkRules, updateAccountDetails)
 
-// router.route("/avatar").patch(verifyJWT, upload.single("avatar"), updateUserAvatar)
-// router.route("/cover-image").patch(verifyJWT, upload.single("coverImage"), updateUserCoverImage)
+router.route("/avatar").patch(verifyJWT, upload.single("avatar"), updateUserAvatar)
+router.route("/coverImage").patch(verifyJWT, upload.single("coverImage"), updateUsercoverImage)
 
-// router.route("/c/:username").get(verifyJWT, getUserChannelProfile)
-// router.route("/history").get(verifyJWT, getWatchHistory)
+router.route("/c/:username").get(verifyJWT, getChannelProfile)
+router.route("/history").get(verifyJWT, getWatchHistory)
 
 export default router

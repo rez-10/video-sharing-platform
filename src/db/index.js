@@ -4,6 +4,7 @@ import { DB_NAME } from "../constants.js";
 
 const connectDB = async () => {
     try {
+        // console.log(`\n MongoDB connected \n DB HOST: `);
         const connectionInstance = await mongoose.connect(`${process.env.DB_URI}/${DB_NAME}`)
         console.log(`\n MongoDB connected \n DB HOST: ${connectionInstance.connection.host}`);
         // console.log(connectionInstance)
@@ -57,3 +58,24 @@ export default connectDB
 // }
 
 // export default connectDB;
+
+
+
+// import mongoose from "mongoose";
+// import {DB_NAME} from "../constants.js";
+
+
+// const connectDB = async() => {
+//     try{
+//         const instance = await mongoose.connect(`${process.env.DB_URI}/${DB_NAME}`);
+//         // console.log(`Connected to mongo, ${instance.connections.nativeclea}`);
+//         console.log(instance)
+//     }
+//     catch(err)
+//     {
+//         console.log("error occured", err);
+//         process.exit(1);
+//     }
+// }
+
+// export default connectDB

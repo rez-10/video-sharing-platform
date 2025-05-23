@@ -1,30 +1,39 @@
 // require('dotenv').config({path: './env'})
 import dotenv from "dotenv"
 import connectDB from "./db/index.js"
+import https from "https";
+import fs from "fs"
 // import app from "./app.js"
 import {app} from "./app.js"
 // const app = app() // or this: import {app} from "./app.js"
 
 
-
-
-
-
 dotenv.config({path: './.env'}) // always set path in dotenv, remember the dot
 const port = process.env.PORT || 8000
+const host = process.env.HOST
+const httpsOptions = {
+    key: fs.readFileSync("./key.pem"),
+    cert: fs.readFileSync("./cert.pem")
+  };
+  
+
+let server;
 connectDB() //async method return a promise, use .then and .catch
 .then(()=>{
     app.on("error", (error) =>{
         console.log("Error loading app", error);
         throw error
     })
-    app.listen(port, ()=>{
-        console.log(`server connected at ${port}`)
+    https.createServer(httpsOptions, app).listen(port, () => {
+        // console.log(`server connected at ${port}`)
+        // app.listen(port, () => {
+        console.log(`http://localhost:${port}`); // setup local URL prod URL later
     })
 })
 .catch((error) =>{
     console.log("DB connection failed", error)
 })
+
 
 
 
