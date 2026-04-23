@@ -3,6 +3,7 @@ import { ApiError } from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/apiResponse.js";
+import { coverImageResourceFolder, avatarResourceFolder } from "../constants.js";
 import zxcvbn from "zxcvbn";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
@@ -13,13 +14,13 @@ const accessTokenOptions = {
     httpOnly: true,
     secure: true,
     sameSite: "Lax",
-    maxAge: process.env.ACCESS_TOKEN_MAXAGE * 60 * 1000,
+    // maxAge: process.env.ACCESS_TOKEN_MAXAGE * 60 * 1000,
 };
 const refreshTokenOptions = {
     httpOnly: true,
     secure: true,
     sameSite: "Lax",
-    maxAge: process.env.REFRESH_TOKEN_MAXAGE * 60 * 1000,
+    // maxAge: process.env.REFRESH_TOKEN_MAXAGE * 60 * 1000,
 };
 
 const generateAccessAndRefereshTokens = async (userId) => {
@@ -30,7 +31,7 @@ const generateAccessAndRefereshTokens = async (userId) => {
 
         user.refreshToken = refreshToken;
         await user.save({ validateBeforeSave: false });
-
+        console.log(user._id.toHexString())
         return { accessToken, refreshToken };
     } catch (error) {
         console.error(error);
@@ -102,8 +103,8 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Avatar file is required");
     }
     // :: upload it on server first
-    const avatar = await uploadOnCloudinary(avatarLocalPath);
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+    const avatar = await uploadOnCloudinary(avatarLocalPath, avatarResourceFolder);
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath, coverImageResourceFolder);
 
     if (!avatar) 
         throw new  ApiError(400, "Avatar2 file is required");
@@ -140,9 +141,9 @@ const loginUser = asyncHandler(async (req, res) => {
     //password check
     //access and referesh token
     //send cookie
-    console.log(req.body);
+    // console.log(req.body);
     const { email, username, password } = req.body;
-    console.log(email);
+    // console.log(email);
     //::no need of line below since validator is already added
     if (!username && !email) {
         throw new ApiError(400, "username or email is required");
@@ -220,7 +221,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const reqRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
     if (!reqRefreshToken) throw new ApiError(401, "RefreshToken Invalid");
     try {
-        const decodedToken = await jwt.verify(
+        const decodedToken = jwt.verify(
             reqRefreshToken,
             process.env.REFRESH_TOKEN_SECRET,
         );
@@ -230,9 +231,9 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
         if (reqRefreshToken !== user?.refreshToken)
             throw new ApiError(401, "Refresh token is expired or used");
-
+        // console.log("xyzzzz")
         const { newAccessToken, newRefreshToken } =
-            await generateAccessAndRefereshTokens(user._id);
+        await generateAccessAndRefereshTokens(user._id);
 
         return res
             .status(200)
@@ -302,7 +303,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     //delete prev avatar
     const avatarLocalPath = req.file?.path;
     if (!avatarLocalPath) throw new ApiError(400, "Avatar file missing");
-    const newAvatar = await uploadOnCloudinary(avatarLocalPath);
+    const newAvatar = await uploadOnCloudinary(avatarLocalPath, avatarResourceFolder);
     if (!newAvatar.url)
         throw new ApiError(400, "Error while uploading avatar on couldinary");
     try {
@@ -326,7 +327,7 @@ const updateUsercoverImage = asyncHandler(async (req, res) => {
     const coverImageLocalPath = req.file?.path;
     if (!coverImageLocalPath)
         throw new ApiError(400, "Cover Image file missing");
-    const newCoverImage = await uploadOnCloudinary(coverImageLocalPath);
+    const newCoverImage = await uploadOnCloudinary(coverImageLocalPath, coverImageResourceFolder);
     if (!newCoverImage.url)
         throw new ApiError(
             400,

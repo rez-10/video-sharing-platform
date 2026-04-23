@@ -15,7 +15,9 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   fileFilter: (_, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png'];
+    const allowedTypes = ['image/jpeg', 'image/png', "video/mp4",
+            "video/mov",
+            "video/webm",]
     if (!allowedTypes.includes(file.mimetype)) {
       return cb(new Error('Only jpeg/png are allowed!'));
     }
@@ -32,7 +34,54 @@ const uploader =  upload.fields([{
   maxCount: 1
 }])
 
-export {uploader, upload}
+
+const chunkSize =
+    parseInt(process.env.VALIDATION_CHUNK_SIZE) || 5 * 1024 * 1024; // 5MB
+// const storage1 = multer.memoryStorage();
+const upload1 = multer({
+    storage,
+    limits: { fileSize: chunkSize },
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = [
+            "image/jpeg",
+            "image/png",
+            "video/mp4",
+            "video/mov",
+            "video/webm",
+        ]
+        if (!allowedTypes.includes(file.mimetype)) {
+            return cb(new Error("Invalid file type"), false);
+        }
+        cb(null, true);
+    },
+})
+// const uploaderVideo = upload1.fields([
+//     {
+//         name: "thumbnail",
+//         maxcount: 1,
+//     },
+//     {
+//         name: "video",
+//         maxcount: 1,
+//     },
+// ])
+
+// const uploaderVideo = upload.fields([
+//     { name: "thumbnail", maxCount: 1 },
+//     { name: "video", maxCount: 1 },
+// ])
+
+const uploaderVideo = upload.fields([
+    {
+        name: "thumbnail",
+        maxCount: 1,
+    },
+    {
+        name: "video",
+        maxCount: 1,
+    },
+]);
+export {uploader, upload, uploaderVideo}
 
 
 

@@ -22,7 +22,7 @@ const router = Router()
 //:: router.route("/register") = app.use("api/v1/users/register") (simply?)
 
 router.route("/register").post(registerLimiter, uploader, validationBodyRules, checkRules, registerUser)
-router.route("/login").post(loginLimiter, loginValidationBodyRules, checkRules,loginUser)
+router.route("/login").post(loginLimiter, loginValidationBodyRules, checkRules, loginUser)
 
 //secured routes
 router.route("/logout").post(verifyJWT,  logoutUser)

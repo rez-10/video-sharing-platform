@@ -20,13 +20,17 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 import userRouter from './routes/user.routes.js'
+import videoRouter from "./routes/video.routes.js"
 // app.get('/', (req, res) => {
 //     // res.send('Hello World!')
 //     // res.send(`Hello, ${req.query.person}!`);
 
     
 //   })
-
+app.use((err, req, res, next) => {
+    console.error("Error:", err.stack);
+    res.status(500).json({ message: "Server error", error: err.message });
+});
 
 // app.get('/hello', query('person').notEmpty().escape(), (req, res) => {
 //     const result = validationResult(req);
@@ -39,6 +43,6 @@ import userRouter from './routes/user.routes.js'
 //   });
   
 app.use("/api/v1/users", userRouter) // :: add id if logged in so it'll open user homapage
-
+app.use("/api/v1/videos", videoRouter)
 //https/domain_name/api/vi/user/register
 export { app };

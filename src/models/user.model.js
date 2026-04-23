@@ -1,6 +1,7 @@
 import mongoose, {Schema} from "mongoose";
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
+import { ApiError } from "../utils/apiError.js";
 
 const userSchema = new Schema(
     {
@@ -70,23 +71,43 @@ userSchema.statics.findByusername = async function(username) {
     return await this.findOne({ username });
 }
 userSchema.methods.generateAccessToken = function(){
-    return jwt.sign(
-        {
-            _id: this._id,
-            email: this.email,
-            username: this.username,
-            fullName: this.fullName
-        },
-        process.env.ACCESS_TOKEN_SECRET,
-        {
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
-        }
-    )
+    // return jwt.sign(
+    //     {
+    //         _id: this._id.toHexString(),
+            // email: this.email,
+            // username: this.username,
+            // fullName: this.fullName
+    //     },
+    //     process.env.ACCESS_TOKEN_SECRET,
+    //     {
+    //         expiresIn: process.env.ACCESS_TOKEN_EXPIRY
+    //     }
+    // )
+        const ID = this._id.toHexString()
+        // console.log(ID);
+       const token = jwt.sign(
+           {
+               _id: ID,
+               email: this.email,
+               username: this.username,
+               fullName: this.fullName,
+           },
+           process.env.ACCESS_TOKEN_SECRET,
+           {
+               expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+           }
+        //    (err, token) => {
+        //        if (err) console.log(err);
+        //    },
+       );
+        return token;
+    
+   
 }
 userSchema.methods.generateRefreshToken = function(){
     return jwt.sign(
         {
-            _id: this._id,
+            _id: this._id.toHexString(),
             
         },
         process.env.REFRESH_TOKEN_SECRET,
